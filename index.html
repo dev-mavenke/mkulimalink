@@ -1,10 +1,53 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mkulimalink</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>MkulimaLink — sell your harvest at today's real price</title>
+    <meta
+      name="description"
+      content="MkulimaLink links smallholder farmers in Kenya directly to bulk buyers. See today's board price for your crop, post a harvest in a minute, and get paid on delivery."
+    />
+    <meta name="theme-color" content="#0E2A24" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E2A24'/%3E%3Cpath d='M16 26V13' stroke='%231EB77E' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M16 15c0-4.4 3.1-7.5 7.5-7.5 0 4.4-3.1 7.5-7.5 7.5Z' fill='%231EB77E'/%3E%3Cpath d='M8 29h16' stroke='%23F2A100' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="MkulimaLink — today's board price for your harvest" />
+    <meta
+      property="og:description"
+      content="Skip the broker. See what buyers are paying today, post your harvest, and get paid on delivery."
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400..700&display=swap"
+    />
+
+    <!--
+      Resolve the theme before first paint so a dark-mode visitor never sees a
+      flash of the light surface. Keep in sync with src/context/ThemeProvider.jsx.
+    -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('mkulimalink:theme')
+          var dark =
+            saved === 'dark' ||
+            (saved !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.classList.toggle('dark', dark)
+        } catch (e) {
+          /* private mode: fall through to the light default */
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

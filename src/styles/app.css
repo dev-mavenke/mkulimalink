@@ -1,0 +1,334 @@
+@import 'tailwindcss';
+
+/* Dark mode is driven by a class on <html>, set before first paint in index.html. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Semantic surfaces and text, redefined per theme.
+   Fixed hues live in @theme below; anything that has to flip lives here.
+   --------------------------------------------------------------------------- */
+:root {
+  --surface: #edf2ee; /* cool mint-white — the paper the market runs on  */
+  --surface-2: #e2eae4; /* inset rows, wells, disabled fields            */
+  --surface-3: #ffffff; /* raised cards that must lift off the ground    */
+  --rule: #cbd8d1;
+  --rule-strong: #b0c3ba;
+
+  --fg: #071a17; /* 15.9:1 on surface */
+  --fg-2: #3d5650; /*  7.0:1 */
+  /* Ratios are quoted against --surface-2, the darkest thing any of these sit on.
+     Quoting them against --surface flattered fg-3 into shipping at 4.49:1 on
+     inset rows and the footer. */
+  --fg-3: #4e6660; /*  5.1:1 */
+
+  --brand: #0c6e4a;
+  --brand-hover: #0a5b3d;
+  --brand-fg: #ffffff;
+  --brand-wash: #dbe9e1;
+
+  /* Its own token rather than reusing --brand, so the board can brighten the ring
+     against its dark surface without dragging the primary button's fill with it. */
+  --focus: #0c6e4a;
+
+  --up: #0c6e4a;
+  --down: #be1a60;
+  /* Travels with --down. A fill and its label are one decision: `text-white` hard-coded
+     against a token that flips per theme is how the danger button shipped at 3.2:1. */
+  --down-fg: #ffffff; /* 6.0:1 on --down */
+
+  /* Operator-side status. Warning and alert each get their own text/wash pair, so
+     a suspended account never has to borrow the price-drop colour, and neither
+     status has to be read as an alpha wash sitting over whatever is behind it. */
+  --warn-wash: #fbe6bd;
+  --warn-fg: #6b4400; /* 6.9:1 on --warn-wash */
+
+  --alert: #be1a60;
+  --alert-wash: #fbe1ec;
+  --alert-fg: #8f1049; /* 7.3:1 on --alert-wash */
+
+  --shadow-key: 6 26 22;
+}
+
+.dark {
+  --surface: #071a17;
+  --surface-2: #0e2a24;
+  --surface-3: #163a31;
+  --rule: #1f4a3f;
+  --rule-strong: #2c6153;
+
+  --fg: #edf2ee;
+  --fg-2: #a8c0b8;
+  --fg-3: #8faaa1;
+
+  --brand: #1eb77e;
+  --brand-hover: #35c993;
+  --brand-fg: #071a17;
+  --brand-wash: #10352c;
+
+  --focus: #1eb77e;
+
+  --up: #1eb77e; /* 4.8:1 on --surface-3, the lightest dark surface */
+  --down: #f778b0; /* 4.9:1 there — #f0559b only reached 3.9:1 */
+  --down-fg: #071a17; /* 7.1:1 on --down */
+
+  /* An explicit warm dark wash, not marigold at 20% — over the dark green
+     surfaces that blend to olive, which is the wrong signal and only reached
+     4.2:1. */
+  --warn-wash: #3a2a05;
+  --warn-fg: #f6bb45; /* 8.0:1 on --warn-wash */
+
+  --alert: #f0559b;
+  --alert-wash: #3d0f24;
+  --alert-fg: #f9b8d3; /* 9.9:1 on --alert-wash */
+
+  --shadow-key: 0 0 0;
+}
+
+@theme {
+  /* -- Type ---------------------------------------------------------------
+     Archivo carries a width axis, so the masthead can be genuinely wide
+     rather than faked with letter-spacing. Public Sans is the interface
+     face — it was designed for small sizes on cheap screens, which is what
+     most of our farmers are reading on. Plex Mono handles anything that
+     behaves like a reading off an instrument: units, codes, timestamps. */
+  --font-display: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--line-height: 1;
+  --text-eyebrow--letter-spacing: 0.14em;
+
+  /* -- Fixed hues --------------------------------------------------------
+     The board is a physical object: it stays dark in both themes, so its
+     colours are literal, not semantic. */
+  --color-board: #0e2a24;
+  --color-board-2: #163a31;
+  --color-board-3: #1f4a3f;
+  --color-board-fg: #edf2ee;
+  --color-board-fg-2: #a8c0b8;
+  --color-board-fg-3: #8faaa1;
+
+  --color-leaf: #0c6e4a;
+  --color-leaf-bright: #1eb77e;
+  --color-marigold: #f2a100; /* fills and rules only — never text on light */
+  --color-marigold-soft: #fbe6bd;
+  --color-hibiscus: #be1a60;
+  --color-hibiscus-bright: #f778b0; /* 6.0:1 on the board */
+
+  /* -- Geometry ----------------------------------------------------------
+     Tight radii: this is a trading instrument, not a pillow. */
+  --radius-field: 0.375rem;
+  --radius-panel: 0.5rem;
+
+  --shadow-panel: 0 1px 2px rgb(var(--shadow-key) / 0.06);
+  --shadow-lift: 0 8px 24px -12px rgb(var(--shadow-key) / 0.22);
+  --shadow-pop: 0 16px 40px -16px rgb(var(--shadow-key) / 0.3);
+
+  --animate-row-in: row-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes row-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.5rem, 0);
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.75rem, 0);
+    }
+  }
+}
+
+/* Expose the flipping vars to Tailwind. `inline` keeps the var() reference in
+   the generated utility, so `bg-surface` follows the theme at runtime. */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-wash: var(--brand-wash);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-down-fg: var(--down-fg);
+  --color-warn-wash: var(--warn-wash);
+  --color-warn-fg: var(--warn-fg);
+  --color-alert: var(--alert);
+  --color-alert-wash: var(--alert-wash);
+  --color-alert-fg: var(--alert-fg);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Prices, weights and dates are read in columns — never let them shimmy. */
+  :where(table, .tnum) {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :where(h1, h2, h3, h4) {
+    text-wrap: balance;
+  }
+  :where(p, li) {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-marigold);
+    color: #071a17;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Component utilities. Registered with @utility (not plain CSS) so ordinary
+   Tailwind classes can still override them at the call site.
+   --------------------------------------------------------------------------- */
+
+/* The masthead voice: Archivo pushed out along its width axis. */
+@utility masthead {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 116;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 0.94;
+}
+
+/* Small all-caps label that names a region or a unit. */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--text-eyebrow--letter-spacing);
+  text-transform: uppercase;
+}
+
+@utility panel {
+  background-color: var(--surface-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+/* A dark panel that reads as the market's price board, in either theme. */
+@utility board-panel {
+  background-color: var(--color-board);
+  border: 1px solid var(--color-board-3);
+  border-radius: var(--radius-panel);
+  color: var(--color-board-fg);
+
+  /* The board stays dark in light mode, so the theme-flipping tokens have to stay
+     on their dark steps *inside* it. Without this, `text-up` paints #0c6e4a onto
+     board green at 2.4:1 — every price move on the landing page unreadable, in the
+     one component the whole product is built around.
+     Redefining the vars here rather than adding a `surface="board"` prop means
+     anything dropped into the board inherits the right ink instead of having to
+     remember. It works because @theme inline keeps the var() reference live in
+     `text-up` et al.
+     Surfaces and --brand are deliberately left alone: components that paint their
+     own background (buttons, badges) carry a matched fg with them, and re-pointing
+     half of such a pair is how you get white text on leaf-bright. */
+  --fg: var(--color-board-fg);
+  --fg-2: var(--color-board-fg-2);
+  --fg-3: var(--color-board-fg-3);
+  --rule: var(--color-board-3);
+  --rule-strong: var(--color-board-3);
+  --up: var(--color-leaf-bright);
+  --down: var(--color-hibiscus-bright);
+  --down-fg: #071a17; /* moved with --down, per the note above */
+  --focus: var(--color-leaf-bright);
+}
+
+@utility field-base {
+  width: 100%;
+  background-color: var(--surface-3);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-field);
+  color: var(--fg);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  padding: 0.5625rem 0.75rem;
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease;
+
+  &::placeholder {
+    color: var(--fg-3);
+  }
+  &:hover:not(:disabled, [aria-invalid='true']) {
+    border-color: var(--fg-3);
+  }
+  &:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 22%, transparent);
+  }
+  &[aria-invalid='true'] {
+    border-color: var(--down);
+  }
+  &:disabled {
+    background-color: var(--surface-2);
+    color: var(--fg-3);
+    cursor: not-allowed;
+  }
+}
+
+/* Hairline that carries the marigold only where a total is being struck. */
+@utility rule-total {
+  border-top: 2px solid var(--color-marigold);
+}
+
+@utility skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 100;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-field);
+  background-color: var(--fg);
+  color: var(--surface);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transform: translateY(-200%);
+  transition: transform 0.16s ease;
+
+  &:focus-visible {
+    transform: translateY(0);
+  }
+}
