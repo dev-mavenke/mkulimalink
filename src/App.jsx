@@ -21,10 +21,6 @@ import { AdminRegistrations } from '@/routes/admin/Registrations'
 import { AdminModeration } from '@/routes/admin/Moderation'
 import { AdminSettlement } from '@/routes/admin/Settlement'
 
-/**
- * Restores scroll on navigation and honours `#anchor` links, which the router
- * does not do on its own.
- */
 function ScrollManager() {
   const { pathname, hash } = useLocation()
 
@@ -42,7 +38,6 @@ function ScrollManager() {
   return null
 }
 
-/** Public pages: header, content, footer. */
 function PublicLayout() {
   return (
     <div className="flex min-h-dvh flex-col">
@@ -58,8 +53,8 @@ function PublicLayout() {
   )
 }
 
-function RequireAuth() {
-  const { user, loading } = useAuth()
+function RequireFarmer() {
+  const { user, profile, loading } = useAuth()
   const location = useLocation()
 
   if (loading) {
@@ -77,18 +72,13 @@ function RequireAuth() {
     return <Navigate to="/signin" state={{ from: location.pathname }} replace />
   }
 
+  if (profile?.isStaff) {
+    return <Navigate to="/admin" replace />
+  }
+
   return <Outlet />
 }
 
-/**
- * Keeps the operator screens out of the way of everyone else. A signed-in farmer
- * who types `/admin` lands back on their own dashboard rather than a wall — they
- * have not done anything wrong, there is just nothing for them here.
- *
- * This hides the interface. It does not protect the data: `is_staff` comes off
- * the profile row, and every `admin_*` function in the migration re-checks it in
- * Postgres, so a forged flag in this bundle buys nothing but a broken page.
- */
 function RequireAdmin() {
   const { user, loading, admin, profileError } = useAuth()
   const location = useLocation()
@@ -108,10 +98,6 @@ function RequireAdmin() {
     return <Navigate to="/signin" state={{ from: location.pathname }} replace />
   }
 
-  // A profile that failed to load is not the same as someone at the wrong door.
-  // Redirecting on it would tell an operator on a dropped connection that they
-  // had lost their access, so say what actually happened. The fetch lives in the
-  // auth provider and has no retry handle of its own, hence the reload.
   if (profileError) {
     return (
       <div className="grid min-h-dvh place-items-center px-4">
@@ -147,7 +133,7 @@ export default function App() {
         <Route path="signin" element={<SignIn mode="signin" />} />
         <Route path="signup" element={<SignIn mode="signup" />} />
 
-        <Route element={<RequireAuth />}>
+        <Route element={<RequireFarmer />}>
           <Route element={<AppShell />}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="dashboard/payouts" element={<Payouts />} />
@@ -156,11 +142,6 @@ export default function App() {
         </Route>
 
         <Route element={<RequireAdmin />}>
-          {/* The provider wraps the shell, not the pages: the shell's own tab
-              badges are counts — the ID queue, the flag queue — and fetching
-              them separately from the page they frame is how the two end up
-              disagreeing. It is inside `RequireAdmin` so the `admin_*` calls are
-              never made by someone who would only be refused. */}
           <Route
             path="admin"
             element={

@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { LogOut, UserRound } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/context/authContext'
 import { useAdmin } from '@/context/adminContext'
@@ -6,25 +7,6 @@ import { number } from '@/lib/format'
 import { Icon, Logo } from '@/components/Icon'
 import { ThemeToggle } from '@/components/layout/SiteHeader'
 
-/**
- * The operator shell.
- *
- * Deliberately not the farmer shell. The rail is board-dark in both themes, the
- * way the price board is, because an operator is sitting *at* the board rather
- * than reading it — and because a page that can suspend accounts and release
- * money should never be mistaken for the one that posts a lot of tomatoes.
- *
- * There is no bottom tab bar here either. That pattern exists in the farmer app
- * because farmers are one-handed in a field; operators are at a desk, so this
- * one scrolls a tab strip on narrow screens and keeps the desk metaphor.
- */
-
-/**
- * The tabs are built per render rather than declared at module scope, because two
- * of them carry a count. A constant would have been read once, at import, and the
- * badge would then disagree with the page it sits next to for the rest of the
- * session.
- */
 function tabsFor({ awaitingId, flags }) {
   return [
     { to: '/admin', label: 'Overview', icon: 'board', end: true },
@@ -52,10 +34,8 @@ export function AdminShell() {
 
   return (
     <div className="min-h-dvh bg-surface md:grid md:grid-cols-[15.5rem_1fr]">
-      {/* The right border only earns its keep in dark mode, where the rail and the
-          page surface are two close greens and the edge would otherwise mush. */}
       <aside className="sticky top-0 z-30 hidden h-dvh flex-col border-r border-board-3 bg-board px-3 py-5 text-board-fg md:flex">
-        <NavLink to="/" className="rounded-sm px-2" aria-label="MkulimaLink home">
+        <NavLink to="/admin" className="rounded-sm px-2" aria-label="MkulimaLink operator">
           <Logo tone="board" />
         </NavLink>
 
@@ -97,28 +77,26 @@ export function AdminShell() {
           ) : null}
 
           <div className="px-1">
-            <p className="truncate text-xs font-semibold text-board-fg">{user?.email}</p>
-            <div className="mt-1 flex items-center gap-4">
-              <NavLink to="/dashboard" className="text-xs text-board-fg-3 hover:text-board-fg hover:underline">
-                Farmer view
-              </NavLink>
-              <button
-                type="button"
-                onClick={signOut}
-                className="text-xs text-board-fg-3 hover:text-board-fg hover:underline"
-              >
-                Sign out
-              </button>
-            </div>
+            <p className="flex items-center gap-2 text-xs font-semibold text-board-fg">
+              <UserRound className="size-4 shrink-0 text-board-fg-3" aria-hidden="true" />
+              <span className="truncate">{user?.email}</span>
+            </p>
+            <button
+              type="button"
+              onClick={signOut}
+              className="mt-2 flex items-center gap-2 text-xs text-board-fg-3 hover:text-board-fg"
+            >
+              <LogOut className="size-4 shrink-0" aria-hidden="true" />
+              Sign out
+            </button>
           </div>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        {/* Narrow screens: the same rail, laid flat and scrollable. */}
         <header className="sticky top-0 z-30 border-b-2 border-marigold bg-board text-board-fg md:hidden">
           <div className="flex h-14 items-center gap-3 px-4">
-            <NavLink to="/" className="rounded-sm" aria-label="MkulimaLink home">
+            <NavLink to="/admin" className="rounded-sm" aria-label="MkulimaLink operator">
               <Logo tone="board" showText={false} />
             </NavLink>
             <span className="eyebrow text-marigold">Operator</span>
@@ -126,8 +104,9 @@ export function AdminShell() {
             <button
               type="button"
               onClick={signOut}
-              className="text-xs text-board-fg-3 hover:text-board-fg hover:underline"
+              className="inline-flex items-center gap-1.5 text-xs text-board-fg-3 hover:text-board-fg"
             >
+              <LogOut className="size-4" aria-hidden="true" />
               Sign out
             </button>
           </div>
@@ -154,10 +133,6 @@ export function AdminShell() {
         </header>
 
         <div className="hidden items-center gap-3 border-b border-rule px-6 py-2.5 md:flex">
-          {/* `source` is null only until the first load lands. Printing the zeros
-              from `emptyAdmin()` until then would read as a quiet morning rather
-              than an unfinished query — so the strip says what it is doing. A
-              later refetch keeps the previous figures, which are real. */}
           <p className="eyebrow text-fg-3">
             {source === null
               ? 'Reading the exchange…'

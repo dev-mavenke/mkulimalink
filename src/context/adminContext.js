@@ -1,6 +1,5 @@
 import { createContext, useContext } from 'react'
 
-/** Split from `AdminProvider.jsx` for the same reason as the theme context. */
 export const AdminContext = createContext(null)
 
 export function useAdmin() {

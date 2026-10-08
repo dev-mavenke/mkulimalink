@@ -3,7 +3,6 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { CHANNELS, ROLES, STATES } from '@/data/people'
 import { COUNTIES } from '@/data/catalog'
 import { useAdmin } from '@/context/adminContext'
-import { describeError } from '@/lib/supabase'
 import { longDate, money, moneyCompact, number, timeAgo } from '@/lib/format'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Head, Row, Table, Td, Th } from '@/components/admin/Table'
@@ -12,6 +11,10 @@ import { Button } from '@/components/ui/Button'
 import { Input, Select } from '@/components/ui/Field'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/Feedback'
 import { Icon } from '@/components/Icon'
+
+function describeError(error) {
+  return error?.message || "Something went wrong";
+}
 
 const SORTS = {
   newest: { label: 'Newest first', compare: (a, b) => b.joinedAt - a.joinedAt },

@@ -7,14 +7,11 @@ import { Field, Input } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
 import { Icon, Logo } from '@/components/Icon'
 
-/**
- * Sign in and sign up share a screen, because they share every field but one and
- * a farmer who guesses wrong should not have to start over.
- */
 export function SignIn({ mode = 'signin' }) {
   const isSignUp = mode === 'signup'
-  const { user, signIn, signUp, demo } = useAuth()
-  const { boardSummary } = useMarket()
+  const { user, profile, signIn, signUp, demo } = useAuth()
+  const market = useMarket()
+  const boardSummary = market?.boardSummary ?? { averageUplift: 0, buyers: 0, farmers: 0 }
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -23,7 +20,11 @@ export function SignIn({ mode = 'signin' }) {
   const [confirmSent, setConfirmSent] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
-  if (user) return <Navigate to={location.state?.from ?? '/dashboard'} replace />
+  function homeFor(nextProfile) {
+    return nextProfile?.isStaff ? '/admin' : (location.state?.from ?? '/dashboard')
+  }
+
+  if (user) return <Navigate to={homeFor(profile)} replace />
 
   const update = (key) => (event) => {
     setForm((current) => ({ ...current, [key]: event.target.value }))
@@ -35,19 +36,15 @@ export function SignIn({ mode = 'signin' }) {
     setSubmitting(true)
     setError(null)
     try {
-      if (isSignUp) {
-        const { awaitingConfirmation } = await signUp(form.name, form.email, form.password)
-        // With email confirmation on, there is no session yet. Navigating to a
-        // dashboard they cannot reach would look like the signup failed.
-        if (awaitingConfirmation) {
-          setConfirmSent(true)
-          setSubmitting(false)
-          return
-        }
-      } else {
-        await signIn(form.email, form.password)
+      const signedInProfile = isSignUp
+        ? await signUp(form.name, form.email, form.password)
+        : await signIn(form.email, form.password)
+      if (signedInProfile?.awaitingConfirmation) {
+        setConfirmSent(true)
+        setSubmitting(false)
+        return
       }
-      navigate(location.state?.from ?? '/dashboard', { replace: true })
+      navigate(homeFor(signedInProfile), { replace: true })
     } catch (caught) {
       setError(caught.message)
       setSubmitting(false)
@@ -56,7 +53,6 @@ export function SignIn({ mode = 'signin' }) {
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1fr_minmax(0,28rem)]">
-      {/* The reason to sign in, stated in the board's own voice. */}
       <aside className="hidden flex-col justify-between bg-board p-12 lg:flex">
         <Link to="/" className="rounded-sm">
           <Logo tone="board" />

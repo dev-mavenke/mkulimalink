@@ -8,10 +8,8 @@ const PLOT = {
   width: VIEW.width - PAD.left - PAD.right,
   height: VIEW.height - PAD.top - PAD.bottom,
 }
-/** Capped so 14 bars read as marks rather than as a wall of blocks. */
 const MAX_BAR = 18
 
-/** Rounded at the top only — the bottom is anchored to the baseline. */
 function barPath(x, y, width, height) {
   const radius = Math.min(4, height, width / 2)
   return [
@@ -25,17 +23,6 @@ function barPath(x, y, width, height) {
   ].join(' ')
 }
 
-/**
- * Sits above the hovered bar, centred on it — except near the ends, where it
- * slides just far enough to stay inside the panel.
- *
- * The bounds are container-query widths: `x`cqw is the distance from the left
- * edge of the plot to the bar, so clamping the shift between that and the
- * matching distance on the right keeps the box in view without anyone having to
- * measure it. Centring alone put the first day's tooltip 77px outside the panel.
- *
- * `x` and `y` are percentages of the plot box.
- */
 function Tooltip({ x, y, children }) {
   return (
     <div
@@ -51,24 +38,16 @@ function Tooltip({ x, y, children }) {
   )
 }
 
-/**
- * New accounts per day across a fortnight.
- *
- * Counts on discrete days, so bars rather than a line. One series, so no legend —
- * the heading names it, and the farmer/buyer split lives in the tooltip rather
- * than becoming a second colour that would have to fight the price palette for
- * meaning. Only the busiest day and today are labelled directly; everything else
- * is on hover, and all of it is in the table underneath.
- */
-export function SignupBars({ days, className }) {
+export function SignupBars({ days = [], className }) {
   const [active, setActive] = useState(null)
 
-  const { bars, ceiling, busiest } = useMemo(() => {
+  const chart = useMemo(() => {
+    if (!days.length) return null
     const top = Math.max(...days.map((day) => day.total), 1)
     const slot = PLOT.width / days.length
     const width = Math.min(MAX_BAR, slot - 2)
 
-    const mapped = days.map((day, index) => {
+    const bars = days.map((day, index) => {
       const height = (day.total / top) * PLOT.height
       return {
         ...day,
@@ -83,17 +62,20 @@ export function SignupBars({ days, className }) {
     })
 
     return {
-      bars: mapped,
+      bars,
       ceiling: top,
-      busiest: mapped.reduce((best, day) => (day.total > best.total ? day : best), mapped[0]),
+      busiest: bars.reduce((best, day) => (day.total > best.total ? day : best), bars[0]),
     }
   }, [days])
 
+  if (!chart) {
+    return <p className={cn('text-sm text-fg-3', className)}>No signups yet.</p>
+  }
+
+  const { bars, ceiling, busiest } = chart
   const today = bars.at(-1)
   const hovered = active === null ? null : bars[active]
   const total = days.reduce((sum, day) => sum + day.total, 0)
-
-  /** Labelled directly: the peak and today. The peak wins if they are the same bar. */
   const labelled = new Set([busiest.index, today.index])
 
   return (
@@ -147,8 +129,6 @@ export function SignupBars({ days, className }) {
                 </text>
               ) : null}
 
-              {/* Hit target is the whole slot, not the mark: a one-account day is
-                  a 6px sliver and nobody can hover that. */}
               <rect
                 x={bar.slotX}
                 y={PAD.top}
@@ -194,7 +174,6 @@ export function SignupBars({ days, className }) {
         Scale tops out at {ceiling} {ceiling === 1 ? 'account' : 'accounts'}
       </p>
 
-      {/* The same data, for anyone who can't read the plot. */}
       <table className="sr-only">
         <caption>New accounts per day, last 14 days</caption>
         <thead>

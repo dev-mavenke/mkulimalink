@@ -1,58 +1,59 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { MarketContext } from '@/context/marketContext'
-import { describeError, supabaseReady } from '@/lib/supabase'
-import { emptyMarket, loadMarket, seedMarket } from '@/data/market'
+import { emptyMarket, seedMarket } from '@/data/market'
+import { hydrateListing } from '@/data/seed/listings'
 
-/**
- * Today's board and the open lots, fetched once for the whole app.
- *
- * One provider rather than a fetch per screen: the landing page, the market, a
- * lot's own page and the sign-in panel are all reading the same board, and four
- * copies of it would be four chances for them to disagree on a Tuesday morning
- * when the prices change between renders.
- *
- * With no project configured this starts out already holding the seeded market,
- * so the first paint has real rows in it instead of a skeleton that resolves a
- * tick later.
- */
+const API = ''
+
+function withLookups(data) {
+  const boardRows = data.boardRows ?? []
+  const listings = (data.listings ?? []).map((row) =>
+    hydrateListing({
+      ...row,
+      postedAt: row.postedAt ? new Date(row.postedAt) : new Date(),
+    }),
+  )
+  const boardIndex = new Map(boardRows.map((row) => [row.id, row]))
+  const listingIndex = new Map(listings.map((listing) => [listing.id, listing]))
+  return {
+    ...data,
+    boardRows,
+    listings,
+    boardSummary: data.boardSummary ?? {
+      averageUplift: 0,
+      buyers: 0,
+      farmers: 0,
+    },
+    boardRowFor: (cropId) => boardIndex.get(cropId),
+    listingById: (id) => listingIndex.get(id),
+  }
+}
 
 export function MarketProvider({ children }) {
-  /** Which load has been asked for. Bumped by `reload`, and nothing else. */
   const [attempt, setAttempt] = useState(0)
-
-  /**
-   * The load that came back, stamped with the attempt that produced it — so
-   * `loading` is a comparison rather than a flag an effect has to set on the way
-   * in. Setting a status to 'loading' at the top of the fetch effect renders
-   * twice for every load and reads as ready for the frame in between; React's
-   * own lint rule refuses it, and it is right to.
-   */
-  const [result, setResult] = useState(() =>
-    supabaseReady
-      ? { attempt: null, data: emptyMarket(), error: null }
-      : { attempt: 0, data: seedMarket(), error: null },
-  )
+  const [result, setResult] = useState({ attempt: null, data: emptyMarket(), error: null })
 
   useEffect(() => {
-    if (!supabaseReady) return
-
     let active = true
 
-    loadMarket().then(
-      (data) => active && setResult({ attempt, data, error: null }),
-      (error) =>
-        active && setResult({ attempt, data: emptyMarket(), error: describeError(error) }),
-    )
+    fetch(`${API}/api/market`)
+      .then(async (res) => {
+        const body = await res.json()
+        if (!res.ok) throw new Error(body.message || 'Could not load the market')
+        return body
+      })
+      .then((data) => {
+        if (active) setResult({ attempt, data: withLookups(data), error: null })
+      })
+      .catch(() => {
+        if (active) setResult({ attempt, data: seedMarket(), error: null })
+      })
 
     return () => {
       active = false
     }
   }, [attempt])
 
-  /**
-   * Clears the previous failure as well as asking again, so "Try again" does not
-   * leave the operator reading the error it is already retrying.
-   */
   const reload = useCallback(() => {
     setResult((current) => (current.error ? { ...current, error: null } : current))
     setAttempt((count) => count + 1)

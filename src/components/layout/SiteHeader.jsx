@@ -84,9 +84,11 @@ export function SiteHeader() {
               Sign in
             </Button>
           )}
-          <Button to="/new" size="sm" icon="plus" className="hidden sm:inline-flex">
-            Post a harvest
-          </Button>
+          {admin ? null : (
+            <Button to="/new" size="sm" icon="plus" className="hidden sm:inline-flex">
+              Post a harvest
+            </Button>
+          )}
 
           <button
             type="button"
@@ -102,7 +104,6 @@ export function SiteHeader() {
       </div>
 
       {open ? (
-        // Any tap inside closes the sheet, so navigating away never leaves it open.
         <nav
           id="mobile-nav"
           onClick={() => setOpen(false)}
@@ -130,9 +131,11 @@ export function SiteHeader() {
             <Button to={user ? '/dashboard' : '/signin'} variant="secondary" fullWidth>
               {user ? 'My lots' : 'Sign in'}
             </Button>
-            <Button to="/new" icon="plus" fullWidth>
-              Post a harvest
-            </Button>
+            {admin ? null : (
+              <Button to="/new" icon="plus" fullWidth>
+                Post a harvest
+              </Button>
+            )}
           </div>
         </nav>
       ) : null}

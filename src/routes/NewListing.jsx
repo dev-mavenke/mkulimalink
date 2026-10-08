@@ -1,15 +1,18 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { COUNTIES, CROPS, GRADES, UNITS, cropById } from '@/data/catalog'
 import { useMarket } from '@/context/marketContext'
 import { useAuth } from '@/context/authContext'
 import { createListing } from '@/data/market'
-import { describeError } from '@/lib/supabase'
 import { money, percent, weight } from '@/lib/format'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { AmountInput, Field, Input, Select, Textarea } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/Icon'
+
+function describeError(error) {
+  return error?.message || 'Something went wrong'
+}
 
 const EMPTY = {
   crop: '',
@@ -26,22 +29,12 @@ function validate(form) {
   const errors = {}
   if (!form.crop) errors.crop = 'Pick the crop you are selling.'
   if (!form.county) errors.county = 'Buyers filter by county, so this one is needed.'
-  // Required because a buyer arranging a lorry needs somewhere to send it, and
-  // because `listings.ward` is not null — an empty one would be refused anyway.
   if (!form.ward.trim()) errors.ward = 'Name the ward or nearest town.'
   if (!form.quantity || Number(form.quantity) <= 0) errors.quantity = 'How many units do you have?'
   if (!form.price || Number(form.price) <= 0) errors.price = 'Name a price per unit.'
   return errors
 }
 
-/**
- * Post a harvest.
- *
- * Kept to one column and eight fields, because the target is a farmer filling
- * this in on a phone at the edge of a field. The board price for the chosen crop
- * appears the moment it is picked — the number they most need in order to answer
- * the next question.
- */
 export function NewListing() {
   const navigate = useNavigate()
   const { boardRowFor, reload } = useMarket()
@@ -50,6 +43,8 @@ export function NewListing() {
   const [errors, setErrors] = useState({})
   const [failure, setFailure] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+
+  if (profile?.isStaff) return <Navigate to="/admin/lots" replace />
 
   const update = (key) => (event) => {
     const { value } = event.target
@@ -84,8 +79,6 @@ export function NewListing() {
       return
     }
 
-    // The insert policy requires an active farmer. Saying so here is kinder than
-    // letting Postgres answer with "you don't have permission to do that".
     if (profile && profile.state !== 'active') {
       setFailure(
         profile.state === 'pending'
@@ -98,8 +91,6 @@ export function NewListing() {
     setSubmitting(true)
     try {
       const result = await createListing(profile, form)
-      // Nowhere to save it means the lot does not exist. Navigating to the
-      // dashboard would show four seeded lots and imply this was one of them.
       if (result.local) {
         setFailure('No project is connected, so this lot was not saved anywhere.')
         setSubmitting(false)
@@ -157,11 +148,7 @@ export function NewListing() {
             )}
           </Field>
 
-          <Field
-            label="Ready to collect"
-            required
-            hint="Counted from the day a buyer confirms."
-          >
+          <Field label="Ready to collect" required hint="Counted from the day a buyer confirms.">
             {(props) => (
               <Select {...props} value={form.readyIn} onChange={update('readyIn')}>
                 <option value="0">Today</option>
@@ -243,9 +230,7 @@ export function NewListing() {
           <div className="panel p-4" aria-live="polite">
             <p className="eyebrow text-fg-3">What you are asking</p>
             <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <p className="tnum font-mono text-2xl font-semibold text-fg">
-                {money(summary.total)}
-              </p>
+              <p className="tnum font-mono text-2xl font-semibold text-fg">{money(summary.total)}</p>
               <p className="text-sm text-fg-3">
                 <span className="tnum font-mono">{weight(summary.totalKg)}</span> in total
               </p>
@@ -286,12 +271,7 @@ export function NewListing() {
           ) : null}
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button
-              type="submit"
-              size="lg"
-              loading={submitting}
-              icon={submitting ? undefined : 'sprout'}
-            >
+            <Button type="submit" size="lg" loading={submitting} icon={submitting ? undefined : 'sprout'}>
               {submitting ? 'Publishing…' : 'Publish this lot'}
             </Button>
             <Button type="button" variant="ghost" size="lg" to="/dashboard">

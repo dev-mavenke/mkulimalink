@@ -17,14 +17,7 @@ const STATUS = {
   paid: { label: 'Paid', tone: 'neutral' },
 }
 
-/**
- * Stands in for this farmer's own lots.
- *
- * `listings` carries no `farmer_id` for a seeded row, and bids are not a table
- * yet, so there is nothing to query for "my lots" — these ids match the seeded
- * lots and match nothing in a live project, which is why the section falls back
- * to its empty state there rather than inventing four sales.
- */
+
 const MY_LOTS = [
   { listingId: 'lot-2841', status: 'bid', bids: 3, best: 5050 },
   { listingId: 'lot-2836', status: 'open', bids: 1, best: 2700 },
