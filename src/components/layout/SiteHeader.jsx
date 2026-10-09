@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { cn } from '@/lib/cn'
@@ -10,6 +11,7 @@ const LINKS = [
   { to: '/market', label: 'Market' },
   { to: '/#how', label: 'How it works' },
   { to: '/#buyers', label: 'For buyers' },
+  { to: '/transporter', label: 'Transporter' },
 ]
 
 export function ThemeToggle({ className }) {
@@ -27,7 +29,9 @@ export function ThemeToggle({ className }) {
       aria-pressed={dark}
     >
       <Icon name={dark ? 'sun' : 'moon'} className="text-lg" />
-      <span className="sr-only">Switch to {dark ? 'light' : 'dark'} theme</span>
+      <span className="sr-only">
+        Switch to {dark ? 'light' : 'dark'} theme
+      </span>
     </button>
   )
 }
@@ -43,7 +47,11 @@ export function SiteHeader() {
           <Logo />
         </Link>
 
-        <nav className="ml-4 hidden items-center gap-1 md:flex" aria-label="Main">
+        {/* Desktop navigation */}
+        <nav
+          className="ml-4 hidden items-center gap-1 md:flex"
+          aria-label="Main"
+        >
           {LINKS.map((link) => (
             <NavLink
               key={link.to}
@@ -64,6 +72,7 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           <ThemeToggle />
+
           {admin ? (
             <Button
               to="/admin"
@@ -75,21 +84,39 @@ export function SiteHeader() {
               Operator
             </Button>
           ) : null}
+
           {user ? (
-            <Button to="/dashboard" variant="secondary" size="sm" className="hidden sm:inline-flex">
+            <Button
+              to="/dashboard"
+              variant="secondary"
+              size="sm"
+              className="hidden sm:inline-flex"
+            >
               My lots
             </Button>
           ) : (
-            <Button to="/signin" variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Button
+              to="/signin"
+              variant="ghost"
+              size="sm"
+              className="hidden sm:inline-flex"
+            >
               Sign in
             </Button>
           )}
+
           {admin ? null : (
-            <Button to="/new" size="sm" icon="plus" className="hidden sm:inline-flex">
+            <Button
+              to="/new"
+              size="sm"
+              icon="plus"
+              className="hidden sm:inline-flex"
+            >
               Post a harvest
             </Button>
           )}
 
+          {/* Mobile menu toggle */}
           <button
             type="button"
             onClick={() => setOpen((current) => !current)}
@@ -98,11 +125,14 @@ export function SiteHeader() {
             aria-controls="mobile-nav"
           >
             <Icon name={open ? 'close' : 'menu'} className="text-xl" />
-            <span className="sr-only">{open ? 'Close menu' : 'Open menu'}</span>
+            <span className="sr-only">
+              {open ? 'Close menu' : 'Open menu'}
+            </span>
           </button>
         </div>
       </div>
 
+      {/* Mobile navigation */}
       {open ? (
         <nav
           id="mobile-nav"
@@ -122,15 +152,22 @@ export function SiteHeader() {
               </li>
             ))}
           </ul>
+
           <div className="mt-3 grid gap-2 border-t border-rule pt-3">
             {admin ? (
               <Button to="/admin" variant="board" icon="shield" fullWidth>
                 Operator view
               </Button>
             ) : null}
-            <Button to={user ? '/dashboard' : '/signin'} variant="secondary" fullWidth>
+
+            <Button
+              to={user ? '/dashboard' : '/signin'}
+              variant="secondary"
+              fullWidth
+            >
               {user ? 'My lots' : 'Sign in'}
             </Button>
+
             {admin ? null : (
               <Button to="/new" icon="plus" fullWidth>
                 Post a harvest
