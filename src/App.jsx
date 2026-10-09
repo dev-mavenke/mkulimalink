@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from '@/context/authContext'
@@ -14,6 +15,7 @@ import { ListingDetail } from '@/routes/ListingDetail'
 import { Dashboard } from '@/routes/Dashboard'
 import { Payouts } from '@/routes/Payouts'
 import { NewListing } from '@/routes/NewListing'
+import Transporter from '@/routes/Transporter'
 import { SignIn } from '@/routes/SignIn'
 import { NotFound } from '@/routes/NotFound'
 import { AdminOverview } from '@/routes/admin/Overview'
@@ -32,6 +34,7 @@ function ScrollManager() {
         return
       }
     }
+
     window.scrollTo({ top: 0 })
   }, [pathname, hash])
 
@@ -44,10 +47,13 @@ function PublicLayout() {
       <a href="#main" className="skip-link">
         Skip to content
       </a>
+
       <SiteHeader />
+
       <main id="main" className="flex-1">
         <Outlet />
       </main>
+
       <SiteFooter />
     </div>
   )
@@ -69,7 +75,13 @@ function RequireFarmer() {
   }
 
   if (!user) {
-    return <Navigate to="/signin" state={{ from: location.pathname }} replace />
+    return (
+      <Navigate
+        to="/signin"
+        state={{ from: location.pathname }}
+        replace
+      />
+    )
   }
 
   if (profile?.isStaff) {
@@ -95,7 +107,13 @@ function RequireAdmin() {
   }
 
   if (!user) {
-    return <Navigate to="/signin" state={{ from: location.pathname }} replace />
+    return (
+      <Navigate
+        to="/signin"
+        state={{ from: location.pathname }}
+        replace
+      />
+    )
   }
 
   if (profileError) {
@@ -122,17 +140,25 @@ export default function App() {
   return (
     <>
       <ScrollManager />
+
       <Routes>
+        {/* Public pages */}
         <Route element={<PublicLayout />}>
           <Route index element={<Landing />} />
           <Route path="market" element={<Market />} />
           <Route path="market/:id" element={<ListingDetail />} />
+
+          {/* Transporter page is now public */}
+          <Route path="transporter" element={<Transporter />} />
+
           <Route path="*" element={<NotFound />} />
         </Route>
 
+        {/* Authentication */}
         <Route path="signin" element={<SignIn mode="signin" />} />
         <Route path="signup" element={<SignIn mode="signup" />} />
 
+        {/* Protected farmer pages */}
         <Route element={<RequireFarmer />}>
           <Route element={<AppShell />}>
             <Route path="dashboard" element={<Dashboard />} />
@@ -141,6 +167,7 @@ export default function App() {
           </Route>
         </Route>
 
+        {/* Protected admin pages */}
         <Route element={<RequireAdmin />}>
           <Route
             path="admin"
